@@ -9,6 +9,7 @@
 ## Usage
 
 ### Linux / macOS
+
 ```shell
 $ git clone https://github.com/mwmahlberg/stackoverflow-answers.git mwmahlberg-so-answers
 Cloning into 'mwmahlberg-so-answers'...
@@ -56,4 +57,5 @@ v0.34.0, built 2025-03-12
 [question]: https://stackoverflow.com/questions/79540452/how-to-deploy-a-local-image-on-k3d-without-pushing-to-a-registry-and-upgrade-hel "Original question on StackOverflow"
 [docker:install]: https://docs.docker.com/engine/install/ "Installation instructions for docker"
 [k3d:install]: https://k3d.io/stable/#releases "Installation instructions for k3d"
+[tilt]: https://tilt.dev "Tilt project page"
 [tilt:install]: https://docs.tilt.dev/install.html "Installation instructions for tilt"
