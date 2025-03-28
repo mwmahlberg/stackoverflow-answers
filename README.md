@@ -9,9 +9,10 @@ This repository is an effort to store all code related to my answers on StackOve
 
 ## Directories
 
-| Question                                                                                                              | directory                                                             |
-| --------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| [How to deploy a local image on K3D without pushing to a registry and upgrade Helm deployments locally?][so:79540452] | [k3d-localregistry-tilt-79540452](./k3d-localregistry-tilt-79540452/) |
+| Question                                                                                                              | Answer             | Code directory                                                        |
+| --------------------------------------------------------------------------------------------------------------------- | ------------------ | --------------------------------------------------------------------- |
+| [How to deploy a local image on K3D without pushing to a registry and upgrade Helm deployments locally?][so:79540452] | [Read][a:79540452] | [k3d-localregistry-tilt-79540452](./k3d-localregistry-tilt-79540452/) |
 
 [so:mwm]: https://stackoverflow.com/users/1296707/markus-w-mahlberg
 [so:79540452]: https://stackoverflow.com/questions/79540452/how-to-deploy-a-local-image-on-k3d-without-pushing-to-a-registry-and-upgrade-hel
+[a:79540452]: https://stackoverflow.com/a/79542100/1296707 "My answer to 'How to deploy a local image on K3D without pushing to a registry and upgrade Helm deployments locally?'"
