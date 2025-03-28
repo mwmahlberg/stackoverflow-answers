@@ -1,0 +1,27 @@
+# Build the custom image and push it to the local registry,
+# which for k3d is autodetected by tilt.
+# The image is built using the Dockerfile in the 'image' directory.
+# Note that the docker image is rebuilt and the whole deployment starts over
+# if the Dockerfile if any of the files in the `context` directory changes.
+docker_build("company/custom_nginx",context="image")
+
+# Load an extension to conveniently deal with the helm chart.
+load("ext://helm_resource", "helm_resource", "helm_repo")
+
+# We first need to load the helm repo
+# and then we can load the helm resource.
+helm_repo('bitnami',url="https://charts.bitnami.com/bitnami")
+
+# Install the actual release.
+# The image_deps are the images that are built before the helm resource is created.
+# The image_keys are the keys that are used to inject the local image into the helm release.
+helm_resource(
+    'nginx-release',
+    chart='bitnami/nginx',resource_deps=['bitnami'],
+     flags=['--set=global.security.allowInsecureImages=true'],
+    # THIS is where the magic happens:
+    # 'helm_ressource'
+    image_deps=['company/custom_nginx'],
+    image_keys=[('image.registry', 'image.repository', 'image.tag')],
+    )
+   
