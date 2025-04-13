@@ -1,0 +1,32 @@
+services:
+  logger:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      REDIS_PASSWORD: password
+    depends_on:
+      redis:
+        condition: service_healthy
+  redis:
+    image: redis:alpine
+    ports:
+      - "6380:6379"
+    # note that "command"  us just the parameters to the default entrypoint
+    command: ["/usr/local/etc/redis/redis.conf"]
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+    volumes:
+      - type: volume
+        source: redis_data
+        target: /data
+        read_only: false
+      - type: bind
+        source: ./redis.conf
+        target: /usr/local/etc/redis/redis.conf
+        read_only: true
+    restart: unless-stopped
+
+
+volumes:
+  redis_data:
