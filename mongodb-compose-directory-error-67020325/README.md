@@ -9,7 +9,6 @@ Usage
 
 ```none
 git clone https://github.com/mwmahlberg/stackoverflow-answers.git mwmahlberg-so-answers
-Cloning into 'mwmahlberg-so-answers'...
 cd mwmahlberg-so-answers/mongodb-compose-directory-error-67020325
 docker-compose up
 ```
