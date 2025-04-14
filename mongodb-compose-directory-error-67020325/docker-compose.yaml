@@ -1,0 +1,29 @@
+services:
+    mongodb:
+      # Do not EVER use "latest" tag in production.
+      # This could very much include a major version upgrade.
+      # As per semantic versioning, this could mean breaking changes.
+      # Use a specific version instead.
+      image: mongo:8.0.6
+      restart: unless-stopped
+      ports:
+        - 0.0.0.0:27017:27017
+      # The entrypoint is /usr/local/bin/docker-entrypoint.sh
+      # which will set up a sane environment and pass 
+      # all in "command" (better name would be "args")
+      # as flags to mongod UNLESS you explicitly
+      # have "mongod" first, which makes the entrypoint
+      # pretty much skip the sanity checks. You do not want that
+      # to happen.
+      command: ["--config", "/etc/mongod.conf"]
+      volumes:
+        # Use long version of volume mounts.
+        # It is much more explicit and easier to read.
+        - type: bind
+          source: ./mongodb_data
+          target: /data/db
+          read_only: false
+        - type: bind
+          source: ./mongod.conf
+          target: /etc/mongod.conf
+          read_only: true
