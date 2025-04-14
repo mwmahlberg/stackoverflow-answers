@@ -1,4 +1,4 @@
-gridfs-stream-54817848
+mongodb-compose-directory-error-67020325
 ======================
 
 This folder contains the code to [my answer][myanswer] to the "question"
