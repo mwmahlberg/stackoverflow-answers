@@ -29,7 +29,7 @@ func main() {
 	}))
 
 	// Sanitize the target URL
-	targetUrl, err := url.Parse(*target)
+	proxiedUrl, err := url.Parse(*target)
 	if err != nil {
 		logger.Error("failed to parse target URL", "error", err)
 		os.Exit(1)
@@ -68,8 +68,8 @@ func main() {
 		// we need to set the request URI to empty.
 		Rewrite: func(req *httputil.ProxyRequest) {
 			req.Out.URL = req.In.URL
-			req.Out.URL.Host = targetUrl.Host
-			req.Out.URL.Scheme = targetUrl.Scheme
+			req.Out.URL.Host = proxiedUrl.Host
+			req.Out.URL.Scheme = proxiedUrl.Scheme
 			req.Out.RequestURI = ""
 		},
 		Transport: retryClient.StandardClient().Transport,
