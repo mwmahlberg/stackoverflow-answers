@@ -26,4 +26,4 @@ docker-compose --profile plugin up
 ```
 
 [q]: https://stackoverflow.com/questions/79520292/telegraf-http-listener-plugin-returning-400-bad-request-for-json-data-with-mea
-[a]: https://stackoverflow.com/a/79520292/1296707
+[a]: https://stackoverflow.com/a/79598177/1296707
