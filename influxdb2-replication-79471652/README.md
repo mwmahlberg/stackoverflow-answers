@@ -34,4 +34,4 @@ replica instance.
 
 
 [q]: https://stackoverflow.com/questions/79471652/using-telegraf-input-for-influxdb-2
-[a]: https://stackoverflow.com/a/79598177/1296707
+[a]: https://stackoverflow.com/a/79598823/1296707
