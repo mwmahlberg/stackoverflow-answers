@@ -1,0 +1,33 @@
+configs:
+  telegraf:
+    file: ./telegraf.conf
+
+services:
+  telegraf:
+    image: telegraf:latest
+    container_name: telegraf
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9273/metrics"]
+      interval: 60s
+      timeout: 2s
+      retries: 5
+      start_period: 10s
+    cap_add:
+      - NET_RAW
+    restart: always
+    ports:
+      - 9273:9273
+      - 8080:8080
+    configs:
+      - source: telegraf
+        target: /etc/telegraf/telegraf.conf
+  agent:
+    build:
+      context: ./
+    image: localhost/agent:latest
+    depends_on:
+      telegraf:
+        condition: service_healthy
+    environment:
+      TELEGRAF_URL: http://telegraf:8080/
+    restart: always
