@@ -1,0 +1,94 @@
+x-common:
+  # This is a common configuration for both the master and the replica.
+  containerconfig: &containerconfig
+    image: influxdb:2-alpine
+    restart: always
+    secrets:
+      - influxdb2_admin_password
+      - influxdb2_admin_token
+    healthcheck:
+      test: ["CMD","influx", "ping"]
+      interval: 20s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    environment: &common-env
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: admin
+      DOCKER_INFLUXDB_INIT_PASSWORD_FILE: /run/secrets/influxdb2_admin_password
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN_FILE: /run/secrets/influxdb2_admin_token
+      DOCKER_INFLUXDB_INIT_ORG: &org yourorg
+secrets:
+  influxdb2_admin_password:
+    file: ./influxdb2-admin-password
+  influxdb2_admin_token:
+    file: ./influxdb2-admin-token
+volumes:
+  replica-data:
+    driver: local
+  main-data:
+    driver: local
+  replica-config:
+    driver: local
+  main-config:
+    driver: local
+configs:
+  telegraf:
+    file: ./telegraf.conf
+services:
+  replica:
+    << : *containerconfig
+    ports:
+      # We willl use this port to access the data
+      # which will be replicated from the "maindb"
+      # instance to "replicadb".
+      - 8086:8086
+    environment:
+      << : *common-env
+      DOCKER_INFLUXDB_INIT_BUCKET: yourdest
+    volumes:
+      - type: volume
+        source: replica-data
+        target: /var/lib/influxdb2
+      - type: volume
+        source: replica-config
+        target: /etc/influxdb2
+  main:
+    << : *containerconfig
+    depends_on:
+      # We want to ensure that we can actually initialize
+      # the replication
+      replica:
+        condition: service_healthy
+    environment:
+      << : *common-env
+      DOCKER_INFLUXDB_INIT_BUCKET: yoursource
+      DEST_BUCKET: yourdest
+      REPLNAME: yourreplication
+      REMOTE_URL: http://replica:8086
+    volumes:
+      - type: volume
+        source: main-data
+        target: /var/lib/influxdb2
+      - type: volume
+        source: main-config
+        target: /etc/influxdb2
+      - type: bind
+        source: ./docker-entrypoint-initdb.d/setup-replication.sh
+        target: /docker-entrypoint-initdb.d/setup-replication.sh
+  telegraf:
+    # Just to fill the "yoursourrce" bucket with some data
+    # and to test the replication.
+    image: telegraf:alpine
+    user: telegraf
+    depends_on:
+      main:
+        condition: service_healthy
+    configs:
+      - source: telegraf
+        target: /etc/telegraf/telegraf.conf
+    secrets:
+      - influxdb2_admin_token
+    environment:
+      INFLUXDB_ORG: *org
+      INFLUXDB_BUCKET: yoursource
