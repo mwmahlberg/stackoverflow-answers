@@ -1,11 +1,17 @@
 configs:
-  telegraf:
-    file: ./telegraf.conf
+  # Config for telegraf listener
+  telegraf-listener:
+    file: ./listener/telegraf.conf
+  
+  telegraf-execd:
+    file: ./execd/telegraf.conf
 
 services:
   telegraf:
     image: telegraf:latest
     container_name: telegraf
+    profiles:
+      - agent
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9273/metrics"]
       interval: 60s
@@ -19,15 +25,32 @@ services:
       - 9273:9273
       - 8080:8080
     configs:
-      - source: telegraf
+      - source: telegraf-listener
         target: /etc/telegraf/telegraf.conf
   agent:
     build:
-      context: ./
+      context: ./listener
+      dockerfile: Dockerfile
     image: localhost/agent:latest
+    profiles:
+      - agent
     depends_on:
       telegraf:
         condition: service_healthy
     environment:
       TELEGRAF_URL: http://telegraf:8080/
+    restart: always
+
+  execd:
+    build:
+      context: ./execd
+      dockerfile: Dockerfile
+    image: localhost/execd:latest
+    ports:
+      - 9273:9273
+    configs:
+      - source: telegraf-execd
+        target: /etc/telegraf/telegraf.conf
+    profiles:
+      - plugin
     restart: always
