@@ -52,5 +52,5 @@ Build
 | `clean`    | removes temporary build files            | :x:                |
 | `squeaky`  | `clean` + removes images                 | :x:                |
 
-[a]: http://web.de
+[a]: https://stackoverflow.com/a/79603794/1296707
 [q]: https://stackoverflow.com/questions/39243389/templating-config-file-with-docker
