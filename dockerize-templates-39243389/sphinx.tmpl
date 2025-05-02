@@ -1,0 +1,3 @@
+{{- range ( default .Env.LANGS "en" | splitList ",") -}}
+answers_{{ . | trim | lower }}
+{{ end -}}

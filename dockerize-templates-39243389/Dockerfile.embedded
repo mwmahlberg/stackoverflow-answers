@@ -1,0 +1,3 @@
+FROM so-dockerize-templates-39243389:no-embed
+ADD sphinx.tmpl /usr/local/share/app/sphinx.tmpl
+ENTRYPOINT [ "/usr/local/bin/dockerize", "-template", "/usr/local/share/app/sphinx.tmpl:/etc/sphinx.cfg" ]
