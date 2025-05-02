@@ -52,5 +52,30 @@ Build
 | `clean`    | removes temporary build files            | :x:                |
 | `squeaky`  | `clean` + removes images                 | :x:                |
 
+### Environment Variables
+
+| Name          | Description                                                                         | default value                                           |
+| ------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| `DOCKER`      | Path to `docker` binary                                                             | Path to docker binary within `$PATH`, none if not found |
+| `REGISTRY`    | docker registry to  use                                                             | `docker.io`                                             |
+| `ORG`         | the docker organisation, most likely your username                                  | `$USER`                                                 |
+| `REPO_PREFIX` | well... a prrefix for `$REPOSITORY`                                                 | ""                                                      |
+| `REPOSITORY`  | the dockerhub repository                                                            | name of the directory containing the Makefile           |
+| `IMAGE`       | the fully qualified image name to use. Overrides `REGISTRY`, `ORG` and `REPOSITORY` | `$(REGISTRY)/$(ORG)/$(REPO_PREFIX)${REPO}`              |
+
+You can either set them per run
+
+```shell
+REPO_PREFIX="my-" make
+```
+
+or use an exported value
+
+```shell
+# set this for example in ~/.bashrc
+export REPO_PREFIX="coolest-"
+make
+```
+
 [a]: https://stackoverflow.com/a/79603794/1296707
 [q]: https://stackoverflow.com/questions/39243389/templating-config-file-with-docker

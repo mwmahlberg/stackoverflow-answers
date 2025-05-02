@@ -4,9 +4,10 @@ $(error "Docker is not installed. Please install Docker to use this Makefile.")
 endif
 
 REGISTRY?=docker.io
-REPO?=${USER}
-PROJECT_PREFIX?=""
-IMAGE?=$(REGISTRY)/$(REPO)/$(PROJECT_PREFIX)$(shell basename $(shell pwd))
+ORG?=${USER}
+REPO_PREFIX?=""
+REPO?=$(shell basename $(shell pwd))
+IMAGE?=$(REGISTRY)/$(ORG)/$(REPO_PREFIX)${REPO}
 
 .PHONY: all clean squeaky
 all: no-embed embed
