@@ -1,0 +1,5 @@
+defaultPlatforms:
+- linux/arm64
+- linux/amd64
+defaultEnv:
+- KO_DOCKER_REPO=ko.local
