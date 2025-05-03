@@ -12,6 +12,7 @@ configs:
         flush_interval = "10s"
         flush_jitter = "0s"
         precision = "0s"
+      [[outputs.health]]        
       [[outputs.nats]]
         servers = ["nats://nats:4222"]
         name = "telegraf"
@@ -25,14 +26,21 @@ configs:
           name = "ping-results"
       [[inputs.ping]]
         # The double dollar sign is required to escape the variable in docker-compose
-        # and to pass it to the telegraf container as $PING_TARGETS
+        # and to pass it to the telegraf container verbatim.
         urls = [$${PING_TARGETS}]
         method = "native"
 
+volumes:
+  nats:
+    driver: local
 services:
   nats:
     image: nats:2-alpine
-    command: "-m 8222 -n mq --js"
+    command: "-m 8222 -n mq --js -sd /data"
+    volumes:
+      - type: volume
+        source: nats
+        target: /data
     ports:
       - 4222:4222
       - 8222:8222
@@ -47,9 +55,13 @@ services:
     environment:
       - HOSTNAME=telegraf
       - PING_TARGETS="telegraf","nats"
-    ports:
-      - 9273:9273
     restart: always
+    healthcheck:
+      test: [ "CMD", "wget", "http://localhost:8080/healthz", "-q", "-S", "-O", "-" ]
+      interval: 10s
+      timeout: 1s
+      retries: 5
+      start_period: 20s
     depends_on:
       nats:
         condition: service_healthy
@@ -64,6 +76,8 @@ services:
     image: mwmahlberg/se-monitoringevents-454044-processor:latest
     depends_on:
       nats:
+        condition: service_healthy
+      telegraf:
         condition: service_healthy
     deploy:
       mode: replicated
