@@ -2,7 +2,7 @@ sf-rsyslog-1180538
 ================
 
 This folder contains the code to [my answer][myanswer] to the "question"
-[rsyslog: how do I explicitly set a PRI value in a template][question]
+[rsyslog: how do I explicitly set a PRI value in a template][question].
 
 Structure
 ---------
@@ -40,5 +40,5 @@ docker-compose up -d
 docker-compose logs -f rsyslog
 ```
 
-[myanswer]: https://stackoverflow.com/a/79587160/1296707
+[myanswer]: https://serverfault.com/a/1180590/238425
 [question]: https://serverfault.com/questions/1180538/rsyslog-how-do-i-explicitly-set-a-pri-value-in-a-template
