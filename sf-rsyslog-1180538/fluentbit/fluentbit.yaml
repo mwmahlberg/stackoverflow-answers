@@ -1,0 +1,61 @@
+service:
+  flush: 1
+  parsers_file: parsers.conf
+  # We want a health check to be able to check if the service is running.
+  # This is done by exposing a HTTP server on port 2020 and enabling the
+  # health check.
+  # The health check is done by sending a GET request to the /api/v1/health
+  # endpoint. The server will respond with a 200 OK if the service is healthy.
+  # This health check will be done by the check service in the docker-compose.yaml
+  http_server: on
+  http_listen: 0.0.0.0
+  http_port: 2020
+  health_check: on
+  hc_errors_count: 5
+  hc_retry_failure_count: 5
+  hc_period: 5
+
+parsers:
+  # This parser is needed because there are is an unlucky constellation of
+  # rsyslog and fluentbit that causes the syslog messages to be malformed.
+  - name: fixed_rsyslog
+    format: regex
+    regex: '/^\<(?<pri>[0-9]+)\>(?<time>[^ ]+) (?<host>[^ ]*) (?<ident>[a-zA-Z0-9_\/\.\-]*)(?:\[(?<pid>[0-9]+)\])?(?:[^\:]*\:)? *(?<message>.*)$/'
+    time_key: time
+    time_format: "%Y-%m-%dT%H:%M:%S%z"
+    time_zone: UTC
+pipeline:
+  inputs:
+    # We have our fluentbit service listening on port 5140/tcp for syslog messages.
+    # You can experiment with the port and protocol.
+    - name: syslog
+      parser: fixed_rsyslog
+      listen: 0.0.0.0
+      port: 5140
+      mode: tcp
+  filters:
+    # We want to be able to use the priToLevel.lua script to extract
+    # the severity and facility from the syslog message in order to
+    # adjust them in the syslog output.
+    - name: lua
+      match: "*"
+      script: /fluent-bit/priToLevel.lua
+      call: priToLevel
+  outputs:
+    - name: syslog
+      match: "*"
+      host: rsyslog
+      port: 514
+      mode: udp
+      syslog_message_key: message
+      # The existing value under the key severity...
+      syslog_severity_key: severity
+      # ...is replaced with the numeric value for debug
+      syslog_severity_preset: 7
+      # The same can be done for the facility.
+      syslog_facility_key: facility
+      # In this case, 23 (local7).
+      syslog_facility_preset: 23
+      syslog_format: rfc3164
+    - name: stdout
+      match: "*"

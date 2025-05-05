@@ -1,0 +1,94 @@
+configs:
+  fluentbit:
+    file: ./fluentbit/fluentbit.yaml
+  pritolevel:
+    file: ./fluentbit/priToLevel.lua
+  debug-to-stdout:
+    content: |
+      # Take the messages of facility.priority e.g. local0.debug
+      # Since we generate the syslog message in the logger service
+      # with the facillity local0 and the severity info, if
+      # anything is logged with the severity debug, it was properly
+      # adjusted by fluentbit.
+      *.debug -/dev/stdout
+services:
+
+  fluentbit:
+    # Our logrouter.
+    # The advantage here is that it understands the syslog protocol and can
+    # make aadjustments to the log messages.
+    image: fluent/fluent-bit:4.0.1
+    restart: unless-stopped
+    command:
+    - -c
+    - /fluent-bit/etc/fluent-bit.yaml
+    ports:
+      - "5140:5140"
+    depends_on:
+      rsyslog:
+        condition: service_healthy
+    configs:
+      - source: fluentbit
+        target: /fluent-bit/etc/fluent-bit.yaml
+      - source: pritolevel
+        target: /fluent-bit/priToLevel.lua
+
+  rsyslog:
+    # The rsyslog server.
+    # This is the server that will receive the syslog messages from fluentbit.
+    # Note that this is just a simple rsyslog server that will receive the syslog messages
+    # and write them to stdout.
+    build:
+      context: ./rsyslog
+      dockerfile: Dockerfile
+    container_name: rsyslog
+    configs:
+      - source: debug-to-stdout
+        target: /etc/rsyslog.d/10-debug-to-stdout.conf
+    healthcheck:
+      test:
+        - "CMD-SHELL"
+        - |
+          netstat -lp | awk  '/0.0.0.0:syslog/{if ($6 != "1/rsyslogd") err=1 }END{exit err}'
+      interval: 10s
+      timeout: 1s
+      retries: 5
+      start_period: 5s
+
+  check:
+    # This service is used to check if the fluentbit service is running.
+    # It does this by sending a GET request to the /api/v1/health endpoint.
+    # If the service is healthy, it will return a 200 OK response.
+    # This is important because if the fluentbit service is not healthy,
+    # the logger service will not be able to send syslog messages to it.
+    image: alpine/curl:8.2.1
+    container_name: check
+    command:
+      - "sh"
+      - "-c"
+      - |
+        curl \
+        -s \
+        --connect-timeout 5 \
+        --max-time 10 \
+        --retry 5 \
+        --retry-delay 0 \
+        --retry-max-time 40 \
+        'http://fluentbit:2020//api/v1/health'
+    depends_on:
+    - fluentbit
+
+  logger:
+    # This service is used to send syslog messages to the fluentbit service.
+    # It is just a super simple logger implementation.
+    image: mwmahlberg/sf-rsyslog-1180538-logger:latest
+    build:
+      context: ./logger
+      dockerfile: Dockerfile
+    command:
+    - -host=fluentbit:5140
+    depends_on:
+      check:
+        # We want the health check to have run successfully before we start the logger service
+        # to ensure that the fluentbit service is healthy.
+        condition: service_completed_successfully
