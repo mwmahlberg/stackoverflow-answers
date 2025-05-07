@@ -1,0 +1,19 @@
+apiVersion: sinks.knative.dev/v1alpha1
+kind: JobSink
+metadata:
+  name: job-sink-logger
+  namespace: demo
+spec:
+  job:
+    spec:
+      completions: 1
+      parallelism: 1
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: main
+              image: docker.io/library/bash:5
+              command: [ "cat" ]
+              args:
+                - "/etc/jobsink-event/event"
