@@ -14,7 +14,7 @@ Usage
 
 > **Note**
 >
-> Differing from my answer, the ingress deployed heere
+> Differing from my answer, the ingress deployed here
 > is assumed to listen on 127.0.0.1:9090.
 >
 > If you have a different IP, you need to adjust [04_jobsink/ingress.yaml](./04_jobsink/ingress.yaml?plain=1#L8)
