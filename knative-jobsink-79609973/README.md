@@ -2,7 +2,7 @@ knative-jobsink-79609973
 ========================
 
 This folder contains the code to [my answer][myanswer] to the "question"
-[Trigger knative jobSink from external source][question].
+[Trigger knative jobSink from external source][question] on StackOverflow.
 
 - [Usage](#usage)
   - [Setup](#setup)
