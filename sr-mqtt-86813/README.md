@@ -15,5 +15,5 @@ docker compose up
 ```
 
 
-[myanswer]: https://example.com
+[myanswer]: https://softwarerecs.stackexchange.com/a/92284/14389
 [question]: https://softwarerecs.stackexchange.com/questions/86813/mqtt-broker-for-fault-tolerance
