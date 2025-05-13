@@ -1,0 +1,163 @@
+# Shared configuration amongst all cluster members
+x-common: &nats-common
+  image: docker.io/nats:2.11-alpine
+  configs:
+  - source: natsconf
+    target: /etc/nats/nats-server.conf
+
+services:
+
+  # First cluster member
+  nats1:
+    hostname: nats1
+    ports:
+      - name: monitor
+        target: 8222
+        published: 8222
+        protocol: tcp
+        app_protocol: http
+      - name: mqtt
+        target: 1883
+        published: 1183
+        protocol: tcp
+    volumes:
+      - nats1:/data
+    <<: *nats-common
+
+  # Second cluster member
+  # Note that we have to increment the published port.
+  nats2:
+    hostname: nats2
+    ports:
+      - name: monitor
+        target: 8222
+        published: 8223
+        protocol: tcp
+        app_protocol: http
+      - name: mqtt
+        target: 1883
+        published: "1184"
+        protocol: tcp
+    volumes:
+      - nats2:/data
+    <<: *nats-common
+
+  # Third cluster member
+  # Note that we have to increment the published port.
+  nats3:
+    hostname: nats3
+    ports:
+      - name: monitor
+        target: 8222
+        published: 8224
+        protocol: tcp
+        app_protocol: http
+      - name: mqtt
+        target: 1883
+        published: "1885"
+        protocol: tcp
+    volumes:
+      - nats3:/data
+    <<: *nats-common
+
+  # A custom MQTT client.
+  mqtt-client:
+    hostname: client
+    image: mwmahlberg/mqtt-demo-client:latest
+    build: .
+    develop:
+      watch:
+        - action: rebuild
+          path: main.go
+    environment:
+      # We reference the three cluster members...
+      MQTT_BROKERS: nats1:1883,nats2:1883,nats3:1883
+      # ...add our authentication matching our config...
+      MQTT_USERNAME: a
+      MQTT_PASSWORD: a
+      # ...and make sure we have a steady stream of input
+      MQTT_INTERVAL: 1s
+
+  # Toolbox for management and debugging of the NATS cluster
+  natsbox:
+    image: natsio/nats-box
+    command:
+    - sh
+    - -ec
+    - trap true INT TERM; sleep infinity & wait
+
+configs:
+  # the static config of the NATS member nodes, as discussed
+  natsconf:
+    content: |
+      # We use the HOSTNAME environment variable
+      # to uniquely identify the instance.
+      server_name: $$HOSTNAME
+
+      # Start an MQTT listener on all interfaces
+      mqtt {
+        port: 1883
+      }
+
+      # We configure jetstream details.
+      # This is a prerequisite for clustering
+      # Note that the ones below are suited for a local test.
+      jetstream {
+        store_dir: /data
+        max_mem: 512M
+        max_file: 1G
+        domain: acme
+      }
+
+      # This is for clustering multiple servers together.
+      cluster {
+        name: mqttdemo
+        connect_retries: 30
+        # Route connections to be received on any interface on port 6222
+        port: 6222
+
+        # Routes are protected, so need to use them with --routes flag
+        # e.g. --routes=nats-route://ruser:T0pS3cr3t@otherdockerhost:6222
+        authorization {
+          user: ruser
+          password: T0pS3cr3t
+          timeout: 2
+        }
+
+        # Routes are actively solicited and connected to from this server.
+        # Note that it is important that ALL cluster members have ALL routes,
+        # since the members decide the quorum on the number of routes. 
+        routes = [
+          nats://ruser:T0pS3cr3t@nats1:6222
+          nats://ruser:T0pS3cr3t@nats2:6222
+          nats://ruser:T0pS3cr3t@nats3:6222
+        ]
+      }      
+
+      # some basic authentication auth auttthorization
+      accounts: {
+          USERS: {
+              users: [
+                  # just a sample user for the USERS account
+                  {user: a, password: a}
+              ]
+              jetstream: enabled
+          },
+          SYS: { 
+              users: [
+                  {user: admin, password: changeit}
+                ]
+          },
+      }
+      system_account: SYS
+
+      # NATS Client port of 4222 on all interfaces
+      port: 4222
+      # HTTP monitoring port
+      monitor_port: 8222
+
+# Our volumes for persistence.
+volumes:
+  nats1:
+  nats2:
+  nats3:
