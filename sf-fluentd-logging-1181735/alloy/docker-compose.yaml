@@ -1,0 +1,43 @@
+configs:
+  alloy-config:
+    content: |
+      logging {
+        level  = "info"
+        format = "logfmt"
+      }
+      discovery.docker "nix" {
+        host = "unix:///var/run/docker.sock"
+      }
+      loki.echo "example" { }
+
+      loki.source.docker "default" {
+        host       = "unix:///var/run/docker.sock"
+        targets    = discovery.docker.nix.targets
+        forward_to = [loki.echo.example.receiver]
+      }
+# labels     = {"logaggregation" = "yes"}
+
+
+services:
+  logger-app:
+    image: alpine:latest
+    command: ["sh", "-c", "while true; do echo 'Hello, World!'; sleep 5; done"]
+    deploy:
+      replicas: 1
+      labels:
+        logaggregation: "yes"
+  alloy:
+    image: grafana/alloy:v1.8.2
+    command:
+      - run
+      - --cluster.enabled=false
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
+    ports:
+      - "12345:12345"
+    configs:
+      - source: alloy-config
+        target: /etc/alloy/config.alloy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro

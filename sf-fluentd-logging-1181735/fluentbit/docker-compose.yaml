@@ -1,0 +1,35 @@
+configs:
+  fluent-bit-config:
+    content: |
+      [SERVICE]
+          Flush        1
+          Daemon       Off
+          Log_Level    debug
+
+      [INPUT]
+          Name         forward
+          Listen       0.0.0.0
+          Port         24224
+      [OUTPUT]
+          Name   stdout
+          Match  *
+
+services:
+  logger-app:
+    image: alpine:latest
+    command: ["sh", "-c", "while true; do echo 'Hello, World!'; sleep 5; done"]
+    deploy:
+      replicas: 1
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: ${FLUENTBIT_HOST_IP:?please set FLUENTBIT_HOST_IP in .env}:24224
+        fluentd-async: "true"
+  fluentbit:
+    image: fluent/fluent-bit:latest
+    configs:
+      - source: fluent-bit-config
+        target: /fluent-bit/etc/fluent-bit.conf
+    ports:
+      - "24224:24224"
+
