@@ -4,13 +4,18 @@ sf-egress-ip-1184259
 This folder contains the code to [my answer][myanswer] to the "question"
 [Use a static proxy IP for a pod in Kubernetes][question] on softwarerecs.stackexchange.com.
 
+- [Prerequisites](#prerequisites)
+- [Usage](#usage)
+  - [Clone the repository](#clone-the-repository)
+  - [Deploy without network policy](#deploy-without-network-policy)
+  - [Deploy with network policy](#deploy-with-network-policy)
 
 Prerequisites
 -------------
 
-* git
-* kubectl
-* kustomize (optional, but helpful for adjustments)
+* A git client
+* [kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl)
+* [kustomize](https://kubectl.docs.kubernetes.io/installation/kustomize/) (optional, but helpful for adjustments)
 
 Usage
 -----
