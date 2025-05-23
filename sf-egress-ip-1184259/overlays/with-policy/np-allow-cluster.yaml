@@ -1,0 +1,12 @@
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  namespace: insights
+  name: allow-all-namespaces
+spec:
+  podSelector:
+    matchLabels:
+      app: snmp-exporter
+  ingress:
+  - from:
+    - namespaceSelector: {}

@@ -1,0 +1,16 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: snmp-exporter
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9116"
+    prometheus.io/path: "/metrics"
+spec:
+  selector:
+    app: snmp-exporter
+  type:  LoadBalancer
+  ports:
+  - name:  snmp-exporter
+    port: 9116
+    targetPort:  9116
